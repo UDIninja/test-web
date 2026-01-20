@@ -329,7 +329,7 @@
             action: 'submit',
             twitter: tw,
             wallet: wl.toLowerCase(),
-            retweetLink: retweetLink,
+            retweetLink: retweetLink.trim(),
             timestamp: new Date().toISOString()
           })
         });
@@ -337,35 +337,25 @@
         const d = await r.json();
 
         if (d.result === 'success') {
-          // Fade out form elements
-          const formElements = document.getElementById('formElements');
-          formElements.classList.add('fade-out');
-
-          // Hide after fade
-          setTimeout(() => {
-            formElements.style.display = 'none';
-          }, 500);
-
-          // Show success
-          welcome.style.display = 'block';
-
-          // Adjust logo margin
-          document.querySelector('.logo').style.marginBottom = '50px';
-
-          // Clear inputs
-          document.getElementById('twitter').value = '';
-          document.getElementById('wallet').value = '';
-          document.getElementById('retweetLink').value = '';
-        } else if (d.result === 'duplicate') {
-          let msg = '';
-          if (d.details?.twitter) msg += 'X already used!\n';
-          if (d.details?.wallet)  msg += 'Wallet already used!\n';
-          error.textContent = msg.trim() || 'Entry already exists!';
-          error.style.display = 'block';
-        } else {
-          error.textContent = 'Something went wrong';
-          error.style.display = 'block';
-        }
+  const formElements = document.getElementById('formElements');
+  formElements.classList.add('fade-out');
+  setTimeout(() => { formElements.style.display = 'none'; }, 500);
+  welcome.style.display = 'block';
+  document.querySelector('.logo').style.marginBottom = '50px';
+  document.getElementById('twitter').value = '';
+  document.getElementById('wallet').value = '';
+  document.getElementById('retweetLink').value = '';
+} else if (d.result === 'duplicate') {
+  let msg = '';
+  if (d.details?.twitter)   msg += 'X already used!\n';
+  if (d.details?.wallet)    msg += 'Wallet already used!\n';
+  if (d.details?.retweetLink) msg += 'Retweet link already used!\n';
+  error.textContent = msg.trim() || 'Entry already exists!';
+  error.style.display = 'block';
+} else {
+  error.textContent = 'Something went wrong';
+  error.style.display = 'block';
+}
       } catch (e) {
         console.error(e);
         error.textContent = 'Network error – try again later';
@@ -378,3 +368,5 @@
   </script>
 </body>
 </html>
+
+
