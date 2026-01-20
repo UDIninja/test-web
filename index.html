@@ -192,8 +192,8 @@
   <div class="password-screen" id="passwordScreen">
     <div class="pass-container">
       <img src="Infeeno.png" alt="UDI" class="pass-logo">
-      <input type="text" inputmode="text" id="passInput" placeholder="Enter Code..." autocomplete="off">
-      <div class="pass-error" id="passError">Invalid code!</div>
+      <input type="text" inputmode="text" id="passInput" placeholder="Password..." autocomplete="off">
+      <div class="pass-error" id="passError">Wrong Password!</div>
     </div>
     <div class="footer">
       <span>© 2025 UDI. All rights reserved.</span>
@@ -210,13 +210,13 @@
         Please complete all steps to have a chance to receive Whitelist
       </div>
       <div style="margin: 8px 0;">
-        <input type="text" id="twitter" placeholder="@yourX" class="compact-input">
+        <input type="text" id="twitter" placeholder="@yourX(Twitter)" class="compact-input">
       </div>
       <div style="margin: 8px 0;">
         <input type="text" id="wallet" placeholder="0x...eth" class="compact-input">
       </div>
       <div style="margin: 8px 0;">
-        <input type="text" id="retweetLink" placeholder="Paste Retweet Link here" class="compact-input">
+        <input type="text" id="retweetLink" placeholder="Enter your retweet link..." class="compact-input">
       </div>
       <div class="checkbox-group">
         <label class="checkbox-label">
@@ -247,7 +247,7 @@
   </div>
 
   <script>
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx9btMeGOjPeUIHwWpNqjT66QQRUIo-Y5XW0f5pe0bcBdSURVIHVc1H9v_lO1LzSx9j/exec';
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwqOQBmy5JighmyWMLijzMiVswlgoQta_wQZ3020BwZj9XIYoMMV5mXAaHRvLlA53ts/exec';
 
     const passwordScreen = document.getElementById('passwordScreen');
     const mainForm       = document.getElementById('mainForm');
@@ -267,7 +267,7 @@
           mainForm.style.display = 'flex';
         }, 250);
       } else if (this.value.length >= 5) {  // Show error after reasonable input length
-        passError.textContent = 'Invalid code!';
+        passError.textContent = 'Wrong Password!';
         passError.classList.add('show');
       }
     });
@@ -292,7 +292,7 @@
       loading.style.display = error.style.display = welcome.style.display = 'none';
 
       if (!tw || !wl || !retweetLink) {
-        error.textContent = 'Please fill all fields (including Retweet Link)';
+        error.textContent = 'Please fill all fields';
         error.style.display = 'block';
         return;
       }
@@ -304,7 +304,7 @@
       }
 
       if (retweetLink && !retweetLink.includes('x.com') && !retweetLink.includes('twitter.com')) {
-        error.textContent = 'Retweet link must be from x.com or twitter.com';
+        error.textContent = 'Invalid link';
         error.style.display = 'block';
         return;
       }
