@@ -1,1 +1,126 @@
-fefef
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>$UDI</title>
+
+<link rel="icon" href="/UDifavicon.png">
+<link href="https://fonts.googleapis.com/css2?family=Special+Elite&display=swap" rel="stylesheet">
+
+<style>
+body {
+  margin: 0;
+  background: #fd8c00;
+  color: white;
+  font-family: 'Special Elite', monospace;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.check-container {
+  text-align: center;
+  width: 100%;
+  max-width: 320px;
+}
+
+input {
+  width: 100%;
+  padding: 18px 20px;
+  background: rgba(255,255,255,0.08);
+  border: none;
+  border-radius: 30px;
+  color: white;
+  font-size: 1.2rem;
+  text-align: center;
+  letter-spacing: 2px;
+  backdrop-filter: blur(10px);
+  font-family: 'Special Elite', monospace;
+}
+
+input::placeholder {
+  color: rgba(255,255,255,0.4);
+}
+
+input:focus {
+  outline: none;
+  background: rgba(255,255,255,0.15);
+}
+
+.status {
+  margin-top: 20px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  white-space: pre-line;
+}
+
+.ok { color: #61ff58; }
+.fail { color: #ff1b26; }
+</style>
+</head>
+
+<body>
+
+<div class="check-container">
+  <input id="walletInput" placeholder="your wallet here…">
+  <div class="status" id="status"></div>
+</div>
+
+<script>
+const CHECK_SCRIPT_URL = 'PASTE_SCRIPT_CHECK_URL_HERE';
+
+function isValidEthAddress(a) {
+  return /^0x[a-fA-F0-9]{40}$/i.test(a);
+}
+
+document.getElementById('walletInput').addEventListener('change', async () => {
+  const wallet = walletInput.value.trim();
+  const status = document.getElementById('status');
+  status.textContent = '';
+
+  if (!isValidEthAddress(wallet)) {
+    status.textContent = 'Invalid wallet';
+    status.className = 'status fail';
+    return;
+  }
+
+  status.textContent = 'Checking...';
+
+  try {
+    const r = await fetch(CHECK_SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({
+        action: 'check',
+        wallet: wallet.toLowerCase()
+      })
+    });
+
+    const d = await r.json();
+
+    if (d.status === 'OG') {
+      status.textContent = 'OG Whitelist';
+      status.className = 'status ok';
+    } else if (d.status === 'GTD') {
+      status.textContent = 'GTD Whitelist';
+      status.className = 'status ok';
+    } else if (d.status === 'FCFS') {
+      status.textContent = 'FCFS';
+      status.className = 'status ok';
+    } else {
+      status.textContent = 'Not whitelisted yet, stay tuned for the next phase';
+      status.className = 'status fail';
+    }
+
+  } catch (e) {
+    status.textContent = 'Network error';
+    status.className = 'status fail';
+  }
+});
+</script>
+
+</body>
+</html>
+
