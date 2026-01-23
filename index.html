@@ -54,9 +54,11 @@ input:focus {
   font-size: 1.3rem;
   font-weight: bold;
   white-space: pre-line;
+  width: 100%;
+  text-align: center;
 }
 
-.ok { color: #61ff58; }
+.ok { color: #0074bd; }
 .fail { color: #ff1b26; }
 </style>
 </head>
@@ -78,7 +80,7 @@ input:focus {
   const walletInput = document.getElementById('walletInput');
   const statusEl = document.getElementById('status');
 
-  /* OPTION 1 — DÁN LÀ CHECK (DEBOUNCE) */
+  /* OPTION 1 — CHECK (DEBOUNCE) */
   let debounceTimer;
   walletInput.addEventListener('input', () => {
     clearTimeout(debounceTimer);
@@ -99,6 +101,7 @@ input:focus {
     }
 
     statusEl.textContent = 'Checking...';
+    statusEl.className = 'status';
 
     try {
       const response = await fetch(CHECK_SCRIPT_URL, {
@@ -113,10 +116,10 @@ input:focus {
       const data = await response.json();
 
       if (data.status === 'OG') {
-        statusEl.textContent = 'OG Whitelist';
+        statusEl.textContent = 'OG';
         statusEl.className = 'status ok';
       } else if (data.status === 'GTD') {
-        statusEl.textContent = 'GTD Whitelist';
+        statusEl.textContent = 'GTD';
         statusEl.className = 'status ok';
       } else if (data.status === 'FCFS') {
         statusEl.textContent = 'FCFS';
