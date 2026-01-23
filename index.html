@@ -116,13 +116,13 @@ input:focus {
 
       const data = await response.json();
 
-      if (data.status === 'Congratulations<br>You're OG!') {
+      if (data.status === 'OG') {
         statusEl.textContent = 'OG';
         statusEl.className = 'status ok';
-      } else if (data.status === 'Congratulations<br>You're GTD!') {
+      } else if (data.status === 'GTD') {
         statusEl.textContent = 'GTD';
         statusEl.className = 'status ok';
-      } else if (data.status === 'Congratulations<br>You're FCFS!') {
+      } else if (data.status === 'FCFS') {
         statusEl.textContent = 'FCFS';
         statusEl.className = 'status ok';
       } else {
