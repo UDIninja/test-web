@@ -59,7 +59,7 @@ input:focus {
   padding: 0 20px;
 }
 
-.ok { color: #0074bd; }
+.ok { color: #6eff8d; }
 .fail { color: #ff1b26; }
 </style>
 </head>
@@ -117,13 +117,13 @@ input:focus {
       const data = await response.json();
 
       if (data.status === 'OG') {
-        statusEl.textContent = 'OG';
+        statusEl.textContent = 'Congratulations<br>You're OG!';
         statusEl.className = 'status ok';
       } else if (data.status === 'GTD') {
-        statusEl.textContent = 'GTD';
+        statusEl.textContent = 'Congratulations<br>You're GTD!';
         statusEl.className = 'status ok';
       } else if (data.status === 'FCFS') {
-        statusEl.textContent = 'FCFS';
+        statusEl.textContent = 'Congratulations<br>You're FCFS!';
         statusEl.className = 'status ok';
       } else {
         statusEl.textContent =
