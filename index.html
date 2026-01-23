@@ -69,57 +69,70 @@ input:focus {
 </div>
 
 <script>
-const CHECK_SCRIPT_URL = 'PASTE_SCRIPT_CHECK_URL_HERE';
+  const CHECK_SCRIPT_URL = 'PASTE_SCRIPT_CHECK_URL_HERE';
 
-function isValidEthAddress(a) {
-  return /^0x[a-fA-F0-9]{40}$/i.test(a);
-}
-
-document.getElementById('walletInput').addEventListener('change', async () => {
-  const wallet = walletInput.value.trim();
-  const status = document.getElementById('status');
-  status.textContent = '';
-
-  if (!isValidEthAddress(wallet)) {
-    status.textContent = 'Invalid wallet';
-    status.className = 'status fail';
-    return;
+  function isValidEthAddress(address) {
+    return /^0x[a-fA-F0-9]{40}$/i.test(address);
   }
 
-  status.textContent = 'Checking...';
+  const walletInput = document.getElementById('walletInput');
+  const statusEl = document.getElementById('status');
 
-  try {
-    const r = await fetch(CHECK_SCRIPT_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain' },
-      body: JSON.stringify({
-        action: 'check',
-        wallet: wallet.toLowerCase()
-      })
-    });
+  /* OPTION 1 — DÁN LÀ CHECK (DEBOUNCE) */
+  let debounceTimer;
+  walletInput.addEventListener('input', () => {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => {
+      walletInput.dispatchEvent(new Event('change'));
+    }, 400);
+  });
 
-    const d = await r.json();
+  /* CORE CHECK LOGIC */
+  walletInput.addEventListener('change', async () => {
+    const wallet = walletInput.value.trim();
+    statusEl.textContent = '';
 
-    if (d.status === 'OG') {
-      status.textContent = 'OG Whitelist';
-      status.className = 'status ok';
-    } else if (d.status === 'GTD') {
-      status.textContent = 'GTD Whitelist';
-      status.className = 'status ok';
-    } else if (d.status === 'FCFS') {
-      status.textContent = 'FCFS';
-      status.className = 'status ok';
-    } else {
-      status.textContent = 'Not whitelisted yet, stay tuned for the next phase';
-      status.className = 'status fail';
+    if (!isValidEthAddress(wallet)) {
+      statusEl.textContent = 'Invalid wallet';
+      statusEl.className = 'status fail';
+      return;
     }
 
-  } catch (e) {
-    status.textContent = 'Network error';
-    status.className = 'status fail';
-  }
-});
+    statusEl.textContent = 'Checking...';
+
+    try {
+      const response = await fetch(CHECK_SCRIPT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify({
+          action: 'check',
+          wallet: wallet.toLowerCase()
+        })
+      });
+
+      const data = await response.json();
+
+      if (data.status === 'OG') {
+        statusEl.textContent = 'OG Whitelist';
+        statusEl.className = 'status ok';
+      } else if (data.status === 'GTD') {
+        statusEl.textContent = 'GTD Whitelist';
+        statusEl.className = 'status ok';
+      } else if (data.status === 'FCFS') {
+        statusEl.textContent = 'FCFS';
+        statusEl.className = 'status ok';
+      } else {
+        statusEl.textContent =
+          'Not whitelisted yet, stay tuned for the next phase';
+        statusEl.className = 'status fail';
+      }
+    } catch (err) {
+      statusEl.textContent = 'Network error';
+      statusEl.className = 'status fail';
+    }
+  });
 </script>
+
 
 </body>
 </html>
