@@ -72,7 +72,7 @@ input:focus {
 </div>
 
 <script>
-  const CHECK_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz-KGF9MZiqzebFdN2PpXIxA0NoD399Q6mlNln6pGCnHTC_VnkLVS2NojQwIfzFfkpA/exec';
+  const CHECK_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyF98cYF5wN8iXu52XD7eZflsmfvkXM1dw9lK5aHg1CHticqLx91MHYnCU1f4Dh_5hhPg/exec';
 
   function isValidEthAddress(address) {
     return /^0x[a-fA-F0-9]{40}$/i.test(address);
@@ -81,8 +81,10 @@ input:focus {
   const walletInput = document.getElementById('walletInput');
   const statusEl = document.getElementById('status');
 
-  /* OPTION 1 — CHECK (DEBOUNCE) */
   let debounceTimer;
+  let isChecking = false; // anti spam
+
+  /* DEBOUNCE INPUT */
   walletInput.addEventListener('input', () => {
     clearTimeout(debounceTimer);
     debounceTimer = setTimeout(() => {
@@ -92,6 +94,8 @@ input:focus {
 
   /* CORE CHECK LOGIC */
   walletInput.addEventListener('change', async () => {
+    if (isChecking) return;
+
     const wallet = walletInput.value.trim();
     statusEl.textContent = '';
 
@@ -101,13 +105,16 @@ input:focus {
       return;
     }
 
+    isChecking = true;
     statusEl.textContent = 'Checking...';
     statusEl.className = 'status';
 
     try {
       const response = await fetch(CHECK_SCRIPT_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'text/plain' },
+        headers: {
+          'Content-Type': 'application/json'
+        },
         body: JSON.stringify({
           action: 'check',
           wallet: wallet.toLowerCase()
@@ -119,21 +126,30 @@ input:focus {
       if (data.status === 'OG') {
         statusEl.textContent = 'OG access granted';
         statusEl.className = 'status ok';
+
       } else if (data.status === 'GTD') {
         statusEl.textContent = 'GTD access granted';
         statusEl.className = 'status ok';
-      } else if (data.status === 'FCFS') {
-        statusEl.textContent = 'FCFS access granted';
-        statusEl.className = 'status ok';
+
+      } else if (data.status && data.status.startsWith('DUPLICATE')) {
+        statusEl.textContent = 'Duplicate wallet detected';
+        statusEl.className = 'status fail';
+
       } else {
         statusEl.textContent =
           'Not whitelisted yet, stay tuned for the next phase';
         statusEl.className = 'status fail';
       }
+
     } catch (err) {
       statusEl.textContent = 'Network error';
       statusEl.className = 'status fail';
     }
+
+    // cooldown
+    setTimeout(() => {
+      isChecking = false;
+    }, 2000);
   });
 </script>
 
