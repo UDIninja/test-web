@@ -14,61 +14,44 @@
     body {
       margin: 0;
       min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
       background: #fd8c02;
       color: white;
       font-family: 'Special Elite', monospace;
       overflow-x: hidden;
     }
 
+    /* ========== POLL WRAPPER ========== */
+    .poll {
+      position: relative;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
     .check-container {
       width: 100%;
-      max-width: 380px;
+      max-width: 460px;
       padding: 0 16px;
       display: flex;
       flex-direction: column;
       align-items: center;
       text-align: center;
       z-index: 2;
+      gap: 12px;
     }
 
-    .logo {
-      width: 850px;
-      max-width: 100%;
-      margin-bottom: 16px;
-    }
-
-    .mint-btn {
-      width: 100%;
-      padding: 16px 0;
+    .question {
+      font-size: 1.1rem;
+      letter-spacing: 1px;
+      line-height: 1.4;
+      padding: 14px 12px;
+      border: 2px dashed rgba(255,255,255,0.6);
       border-radius: 12px;
-      border: 2px solid white;
-      background: transparent;
-      color: white;
-      font-size: 1.4rem;
-      letter-spacing: 4px;
-      font-weight: bold;
-      cursor: pointer;
-      font-family: 'Special Elite', monospace;
-      animation: blink 1.8s infinite ease-in-out, shake 3s infinite;
+      background: rgba(0,0,0,0.15);
     }
 
-    @keyframes blink {
-      0%,100%{opacity:1}50%{opacity:.6}
-    }
-
-    @keyframes shake {
-      0%{transform:translateX(0)}
-      2%{transform:translateX(-1px)}
-      4%{transform:translateX(1px)}
-      6%{transform:translateX(-1px)}
-      8%{transform:translateX(1px)}
-      10%{transform:translateX(0)}
-      100%{transform:translateX(0)}
-    }
-
+    /* ========== OPTION BOX ========== */
     .option-box {
       position: fixed;
       top: 50%;
@@ -79,7 +62,7 @@
       backdrop-filter: blur(6px);
       border: 2px solid white;
       border-radius: 16px;
-      transition: .4s ease;
+      transition: left .35s ease, right .35s ease, box-shadow .25s ease, transform .2s ease;
       cursor: pointer;
       z-index: 1;
       display: flex;
@@ -87,17 +70,35 @@
       justify-content: center;
     }
 
-    .option-left { left: -220px; }
-    .option-left.active { left: 20px; }
+    .option-left { left: -235px; }
+    .option-right { right: -235px; }
 
-    .option-right { right: -220px; }
-    .option-right.active { right: 20px; }
+    /* Hover (desktop) */
+    .option-left:hover { left: 16px; box-shadow: 0 0 22px rgba(255,255,255,0.7); }
+    .option-right:hover { right: 16px; box-shadow: 0 0 22px rgba(255,255,255,0.7); }
 
-    .arrow { font-size: 2.5rem; opacity: .35; }
-    .option-box.active .arrow { display: none; }
+    .option-left.active { left: 16px; }
+    .option-right.active { right: 16px; }
+
+    .arrow {
+      position: absolute;
+      font-size: 2.2rem;
+      opacity: .35;
+      transition: .2s ease;
+      user-select: none;
+    }
+
+    .option-left .arrow { right: 10px; }
+    .option-right .arrow { left: 10px; }
+
+    .option-box:hover .arrow,
+    .option-box.active .arrow { opacity: 0; }
 
     .option-content {
-      display: none;
+      opacity: 0;
+      pointer-events: none;
+      transition: .2s ease;
+      display: flex;
       flex-direction: column;
       align-items: center;
       gap: 12px;
@@ -105,24 +106,36 @@
       height: 100%;
       justify-content: center;
       padding: 12px;
+      text-align: center;
     }
 
-    .option-box.active .option-content { display: flex; }
+    .option-box:hover .option-content,
+    .option-box.active .option-content {
+      opacity: 1;
+      pointer-events: auto;
+    }
 
     .option-content img {
       width: 140px;
       height: 140px;
       border-radius: 12px;
       border: 2px dashed rgba(255,255,255,.5);
+      object-fit: cover;
+      background: rgba(255,255,255,0.08);
     }
 
     .option-text { font-size: .9rem; letter-spacing: 1px; }
-
     .percent { font-size: .8rem; opacity: .8; }
 
     .locked { opacity: .25; pointer-events: none; }
 
-    /* CONFIRM MODAL */
+    /* ========== MOBILE: disable hover glitch ========== */
+    @media (hover: none) {
+      .option-left:hover,
+      .option-right:hover { box-shadow: none; }
+    }
+
+    /* ========== CONFIRM MODAL ========== */
     .modal {
       position: fixed;
       inset: 0;
@@ -144,12 +157,12 @@
 
     .modal-buttons {
       display: flex;
-      justify-content: space-between;
+      gap: 8px;
       margin-top: 16px;
     }
 
     .modal-buttons button {
-      width: 48%;
+      width: 100%;
       padding: 8px 0;
       border-radius: 8px;
       border: 1px solid white;
@@ -162,28 +175,36 @@
 </head>
 
 <body>
-  <div class="option-box option-left" id="leftBox" onclick="openConfirm('LEFT')">
-    <div class="arrow">◀</div>
-    <div class="option-content">
-      <img src="" />
-      <div class="option-text">LEFT OPTION</div>
-      <div class="percent" id="leftPercent">0%</div>
-    </div>
-  </div>
 
-  <div class="option-box option-right" id="rightBox" onclick="openConfirm('RIGHT')">
-    <div class="arrow">▶</div>
-    <div class="option-content">
-      <img src="" />
-      <div class="option-text">RIGHT OPTION</div>
-      <div class="percent" id="rightPercent">0%</div>
+  <!-- ========== POLL #1 ========== -->
+  <section class="poll" data-poll-id="1">
+    <!-- LEFT OPTION -->
+    <div class="option-box option-left" id="leftBox-1" onclick="openConfirm(1, 'LEFT')">
+      <div class="arrow">◀</div>
+      <div class="option-content">
+        <img src="" />
+        <div class="option-text">LEFT OPTION</div>
+        <div class="percent" id="leftPercent-1">0%</div>
+      </div>
     </div>
-  </div>
 
-  <div class="check-container">
-    <img src="Smoke.gif" class="logo" />
-    <button class="mint-btn" onclick="window.open('https://opensea.io/collection/udion')">MINT</button>
-  </div>
+    <!-- RIGHT OPTION -->
+    <div class="option-box option-right" id="rightBox-1" onclick="openConfirm(1, 'RIGHT')">
+      <div class="arrow">▶</div>
+      <div class="option-content">
+        <img src="" />
+        <div class="option-text">RIGHT OPTION</div>
+        <div class="percent" id="rightPercent-1">0%</div>
+      </div>
+    </div>
+
+    <!-- QUESTION -->
+    <div class="check-container">
+      <div class="question">
+        YOUR POLL QUESTION HERE
+      </div>
+    </div>
+  </section>
 
   <!-- CONFIRM MODAL -->
   <div class="modal" id="confirmModal">
@@ -200,61 +221,93 @@
   </div>
 
   <script>
-    let selectedSide = null;
+    let selected = { pollId: null, side: null };
 
-    let votes = JSON.parse(localStorage.getItem("votes")) || { LEFT: 0, RIGHT: 0 };
-    let userVote = localStorage.getItem("userVote");
-
-    function updatePercent() {
-      const total = votes.LEFT + votes.RIGHT || 1;
-      document.getElementById("leftPercent").innerText =
-        Math.round((votes.LEFT / total) * 100) + "%";
-      document.getElementById("rightPercent").innerText =
-        Math.round((votes.RIGHT / total) * 100) + "%";
+    function getState(pollId) {
+      return JSON.parse(localStorage.getItem("poll_" + pollId)) || { LEFT: 0, RIGHT: 0, userVote: null };
     }
 
-    function openConfirm(side) {
-      if (userVote) return alert("You already voted.");
-      selectedSide = side;
+    function setState(pollId, state) {
+      localStorage.setItem("poll_" + pollId, JSON.stringify(state));
+    }
+
+    function updatePercent(pollId) {
+      const state = getState(pollId);
+      const total = state.LEFT + state.RIGHT || 1;
+      document.getElementById("leftPercent-" + pollId).innerText =
+        Math.round((state.LEFT / total) * 100) + "%";
+      document.getElementById("rightPercent-" + pollId).innerText =
+        Math.round((state.RIGHT / total) * 100) + "%";
+    }
+
+    function lockOptions(pollId) {
+      const state = getState(pollId);
+      const leftBox = document.getElementById("leftBox-" + pollId);
+      const rightBox = document.getElementById("rightBox-" + pollId);
+
+      if (state.userVote === "LEFT") {
+        rightBox.classList.add("locked");
+        leftBox.classList.add("active");
+      } else if (state.userVote === "RIGHT") {
+        leftBox.classList.add("locked");
+        rightBox.classList.add("active");
+      }
+    }
+
+    function openConfirm(pollId, side) {
+      const state = getState(pollId);
+      if (state.userVote) return alert("You already voted on this poll.");
+      selected = { pollId, side };
       document.getElementById("confirmModal").style.display = "flex";
     }
 
     function closeConfirm() {
-      selectedSide = null;
+      selected = { pollId: null, side: null };
       document.getElementById("confirmModal").style.display = "none";
     }
 
     function confirmVote() {
-      if (!selectedSide) return;
-      votes[selectedSide]++;
-      userVote = selectedSide;
+      const { pollId, side } = selected;
+      if (!pollId || !side) return;
 
-      localStorage.setItem("votes", JSON.stringify(votes));
-      localStorage.setItem("userVote", userVote);
+      const state = getState(pollId);
+      state[side] += 1;
+      state.userVote = side;
+      setState(pollId, state);
 
       document.getElementById("confirmModal").style.display = "none";
-      lockOptions();
-      updatePercent();
+      lockOptions(pollId);
+      updatePercent(pollId);
     }
 
-    function lockOptions() {
-      if (userVote === "LEFT") {
-        document.getElementById("rightBox").classList.add("locked");
-        document.getElementById("leftBox").classList.add("active");
-      } else if (userVote === "RIGHT") {
-        document.getElementById("leftBox").classList.add("locked");
-        document.getElementById("rightBox").classList.add("active");
+    // init
+    document.querySelectorAll(".poll").forEach(poll => {
+      const pollId = poll.dataset.pollId;
+      updatePercent(pollId);
+      lockOptions(pollId);
+    });
+
+    /* ========== MOBILE SWIPE ========== */
+    let startX = 0;
+    document.addEventListener("touchstart", e => {
+      startX = e.touches[0].clientX;
+    });
+
+    document.addEventListener("touchend", e => {
+      const endX = e.changedTouches[0].clientX;
+      const diff = endX - startX;
+
+      if (Math.abs(diff) > 60) {
+        const poll = document.querySelector(".poll"); // poll hiện tại
+        const pollId = poll.dataset.pollId;
+
+        if (diff > 0) {
+          document.getElementById("leftBox-" + pollId).classList.add("active");
+        } else {
+          document.getElementById("rightBox-" + pollId).classList.add("active");
+        }
       }
-    }
-
-    function checkWalletEligibility() {
-      // TODO: Sau này nối ví + check trait ở đây
-      return true;
-    }
-
-    updatePercent();
-    if (userVote) lockOptions();
+    });
   </script>
 </body>
 </html>
-
