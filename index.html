@@ -3,35 +3,28 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>$UDI</title>
+  <title>$UDI – Vote</title>
 
   <link rel="icon" href="UDifavicon.png" />
   <link href="https://fonts.googleapis.com/css2?family=Special+Elite&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.jsdelivr.net/npm/ethers@6.7.0/dist/ethers.min.js"></script>
 
   <style>
     * { box-sizing: border-box; }
-
     body {
       margin: 0;
       min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       background: #fd8c02;
       color: white;
       font-family: 'Special Elite', monospace;
       overflow-x: hidden;
     }
-
-    /* ========== POLL WRAPPER ========== */
-    .poll {
-      position: relative;
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
     .check-container {
       width: 100%;
-      max-width: 460px;
+      max-width: 420px;
       padding: 0 16px;
       display: flex;
       flex-direction: column;
@@ -40,18 +33,10 @@
       z-index: 2;
       gap: 12px;
     }
+    .logo { width: 240px; max-width: 100%; }
+    .poll-question { font-size: 1rem; letter-spacing: 1px; opacity: .9; }
+    .wallet { font-size: .75rem; opacity: .85; }
 
-    .question {
-      font-size: 1.1rem;
-      letter-spacing: 1px;
-      line-height: 1.4;
-      padding: 14px 12px;
-      border: 2px dashed rgba(255,255,255,0.6);
-      border-radius: 12px;
-      background: rgba(0,0,0,0.15);
-    }
-
-    /* ========== OPTION BOX ========== */
     .option-box {
       position: fixed;
       top: 50%;
@@ -62,58 +47,32 @@
       backdrop-filter: blur(6px);
       border: 2px solid white;
       border-radius: 16px;
-      transition: left .35s ease, right .35s ease, box-shadow .25s ease, transform .2s ease;
+      transition: .35s ease;
       cursor: pointer;
       z-index: 1;
       display: flex;
       align-items: center;
       justify-content: center;
     }
-
-    .option-left { left: -235px; }
-    .option-right { right: -235px; }
-
-    /* Hover (desktop) */
-    .option-left:hover { left: 16px; box-shadow: 0 0 22px rgba(255,255,255,0.7); }
-    .option-right:hover { right: 16px; box-shadow: 0 0 22px rgba(255,255,255,0.7); }
-
-    .option-left.active { left: 16px; }
-    .option-right.active { right: 16px; }
-
-    .arrow {
-      position: absolute;
-      font-size: 2.2rem;
-      opacity: .35;
-      transition: .2s ease;
-      user-select: none;
-    }
-
-    .option-left .arrow { right: 10px; }
-    .option-right .arrow { left: 10px; }
-
-    .option-box:hover .arrow,
-    .option-box.active .arrow { opacity: 0; }
+    .option-left { left: -220px; }
+    .option-left.active { left: 20px; }
+    .option-right { right: -220px; }
+    .option-right.active { right: 20px; }
+    .arrow { font-size: 2.5rem; opacity: .35; }
+    .option-box.active .arrow { display: none; }
 
     .option-content {
-      opacity: 0;
-      pointer-events: none;
-      transition: .2s ease;
-      display: flex;
+      display: none;
       flex-direction: column;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
       width: 100%;
       height: 100%;
       justify-content: center;
       padding: 12px;
       text-align: center;
     }
-
-    .option-box:hover .option-content,
-    .option-box.active .option-content {
-      opacity: 1;
-      pointer-events: auto;
-    }
+    .option-box.active .option-content { display: flex; }
 
     .option-content img {
       width: 140px;
@@ -121,7 +80,6 @@
       border-radius: 12px;
       border: 2px dashed rgba(255,255,255,.5);
       object-fit: cover;
-      background: rgba(255,255,255,0.08);
     }
 
     .option-text { font-size: .9rem; letter-spacing: 1px; }
@@ -129,13 +87,6 @@
 
     .locked { opacity: .25; pointer-events: none; }
 
-    /* ========== MOBILE: disable hover glitch ========== */
-    @media (hover: none) {
-      .option-left:hover,
-      .option-right:hover { box-shadow: none; }
-    }
-
-    /* ========== CONFIRM MODAL ========== */
     .modal {
       position: fixed;
       inset: 0;
@@ -145,7 +96,6 @@
       justify-content: center;
       z-index: 10;
     }
-
     .modal-box {
       background: black;
       border: 2px solid white;
@@ -154,13 +104,11 @@
       text-align: center;
       width: 280px;
     }
-
     .modal-buttons {
       display: flex;
-      gap: 8px;
+      gap: 10px;
       margin-top: 16px;
     }
-
     .modal-buttons button {
       width: 100%;
       padding: 8px 0;
@@ -176,37 +124,33 @@
 
 <body>
 
-  <!-- ========== POLL #1 ========== -->
-  <section class="poll" data-poll-id="1">
-    <!-- LEFT OPTION -->
-    <div class="option-box option-left" id="leftBox-1" onclick="openConfirm(1, 'LEFT')">
-      <div class="arrow">◀</div>
-      <div class="option-content">
-        <img src="" />
-        <div class="option-text">LEFT OPTION</div>
-        <div class="percent" id="leftPercent-1">0%</div>
-      </div>
+  <div class="option-box option-left" id="leftBox">
+    <div class="arrow">◀</div>
+    <div class="option-content">
+      <img src="" />
+      <div class="option-text">LEFT OPTION</div>
+      <div class="percent" id="leftPercent">0%</div>
     </div>
+  </div>
 
-    <!-- RIGHT OPTION -->
-    <div class="option-box option-right" id="rightBox-1" onclick="openConfirm(1, 'RIGHT')">
-      <div class="arrow">▶</div>
-      <div class="option-content">
-        <img src="" />
-        <div class="option-text">RIGHT OPTION</div>
-        <div class="percent" id="rightPercent-1">0%</div>
-      </div>
+  <div class="option-box option-right" id="rightBox">
+    <div class="arrow">▶</div>
+    <div class="option-content">
+      <img src="" />
+      <div class="option-text">RIGHT OPTION</div>
+      <div class="percent" id="rightPercent">0%</div>
     </div>
+  </div>
 
-    <!-- QUESTION -->
-    <div class="check-container">
-      <div class="question">
-        YOUR POLL QUESTION HERE
-      </div>
-    </div>
-  </section>
+  <div class="check-container">
+    <img src="Smoke.gif" class="logo" />
+    <div class="poll-question">YOUR POLL QUESTION HERE</div>
+    <div class="wallet" id="walletStatus">Not connected</div>
+    <button onclick="connectWallet()" style="margin-top:6px;background:transparent;border:1px solid #fff;color:#fff;border-radius:8px;padding:6px 10px;font-family:inherit;cursor:pointer;">
+      CONNECT WALLET
+    </button>
+  </div>
 
-  <!-- CONFIRM MODAL -->
   <div class="modal" id="confirmModal">
     <div class="modal-box">
       <div>Are you sure?</div>
@@ -221,93 +165,84 @@
   </div>
 
   <script>
-    let selected = { pollId: null, side: null };
+    const CONTRACT_ADDRESS = "0xYOUR_VOTE_CONTRACT";
+    const BACKEND_URL = "https://your-backend.com/sign-vote";
+    const POLL_ID = 1;
 
-    function getState(pollId) {
-      return JSON.parse(localStorage.getItem("poll_" + pollId)) || { LEFT: 0, RIGHT: 0, userVote: null };
+    const ABI = [
+      "function vote(uint256 pollId, uint8 side, uint256 power, bytes sig) external",
+      "function leftVotes(uint256) view returns (uint256)",
+      "function rightVotes(uint256) view returns (uint256)"
+    ];
+
+    const leftBox = document.getElementById("leftBox");
+    const rightBox = document.getElementById("rightBox");
+    let selectedSide = null;
+    let userAddress = null;
+    let votePower = 1;
+
+    async function connectWallet() {
+      if (!window.ethereum) return alert("Install MetaMask");
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const accounts = await provider.send("eth_requestAccounts", []);
+      userAddress = accounts[0];
+      document.getElementById("walletStatus").innerText =
+        "Connected: " + userAddress.slice(0,6) + "..." + userAddress.slice(-4);
     }
 
-    function setState(pollId, state) {
-      localStorage.setItem("poll_" + pollId, JSON.stringify(state));
-    }
-
-    function updatePercent(pollId) {
-      const state = getState(pollId);
-      const total = state.LEFT + state.RIGHT || 1;
-      document.getElementById("leftPercent-" + pollId).innerText =
-        Math.round((state.LEFT / total) * 100) + "%";
-      document.getElementById("rightPercent-" + pollId).innerText =
-        Math.round((state.RIGHT / total) * 100) + "%";
-    }
-
-    function lockOptions(pollId) {
-      const state = getState(pollId);
-      const leftBox = document.getElementById("leftBox-" + pollId);
-      const rightBox = document.getElementById("rightBox-" + pollId);
-
-      if (state.userVote === "LEFT") {
-        rightBox.classList.add("locked");
-        leftBox.classList.add("active");
-      } else if (state.userVote === "RIGHT") {
-        leftBox.classList.add("locked");
-        rightBox.classList.add("active");
-      }
-    }
-
-    function openConfirm(pollId, side) {
-      const state = getState(pollId);
-      if (state.userVote) return alert("You already voted on this poll.");
-      selected = { pollId, side };
+    function openConfirm(side) {
+      if (!userAddress) return alert("Connect wallet first");
+      selectedSide = side;
       document.getElementById("confirmModal").style.display = "flex";
     }
 
     function closeConfirm() {
-      selected = { pollId: null, side: null };
+      selectedSide = null;
       document.getElementById("confirmModal").style.display = "none";
     }
 
-    function confirmVote() {
-      const { pollId, side } = selected;
-      if (!pollId || !side) return;
+    async function confirmVote() {
+      const side = selectedSide === "LEFT" ? 0 : 1;
 
-      const state = getState(pollId);
-      state[side] += 1;
-      state.userVote = side;
-      setState(pollId, state);
+      // 1. Get signature from backend
+      const res = await fetch(BACKEND_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          address: userAddress,
+          pollId: POLL_ID,
+          side,
+          power: votePower
+        })
+      });
+      const { signature } = await res.json();
 
+      // 2. Send tx on-chain
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const signer = await provider.getSigner();
+      const contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
+
+      const tx = await contract.vote(POLL_ID, side, votePower, signature);
+      await tx.wait();
+
+      alert("Vote submitted on-chain!");
       document.getElementById("confirmModal").style.display = "none";
-      lockOptions(pollId);
-      updatePercent(pollId);
     }
 
-    // init
-    document.querySelectorAll(".poll").forEach(poll => {
-      const pollId = poll.dataset.pollId;
-      updatePercent(pollId);
-      lockOptions(pollId);
-    });
+    function hover(box, on) {
+      if (on) box.classList.add("active");
+      else box.classList.remove("active");
+    }
 
-    /* ========== MOBILE SWIPE ========== */
-    let startX = 0;
-    document.addEventListener("touchstart", e => {
-      startX = e.touches[0].clientX;
-    });
+    leftBox.addEventListener("mouseenter", () => hover(leftBox, true));
+    leftBox.addEventListener("mouseleave", () => hover(leftBox, false));
+    rightBox.addEventListener("mouseenter", () => hover(rightBox, true));
+    rightBox.addEventListener("mouseleave", () => hover(rightBox, false));
 
-    document.addEventListener("touchend", e => {
-      const endX = e.changedTouches[0].clientX;
-      const diff = endX - startX;
-
-      if (Math.abs(diff) > 60) {
-        const poll = document.querySelector(".poll"); // poll hiện tại
-        const pollId = poll.dataset.pollId;
-
-        if (diff > 0) {
-          document.getElementById("leftBox-" + pollId).classList.add("active");
-        } else {
-          document.getElementById("rightBox-" + pollId).classList.add("active");
-        }
-      }
-    });
+    leftBox.addEventListener("click", () => openConfirm("LEFT"));
+    rightBox.addEventListener("click", () => openConfirm("RIGHT"));
   </script>
+
 </body>
 </html>
+
