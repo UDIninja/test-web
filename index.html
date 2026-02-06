@@ -2,146 +2,188 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <title>$UDI Poll</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>$UDI</title>
 
   <link rel="icon" href="UDifavicon.png" />
   <link href="https://fonts.googleapis.com/css2?family=Special+Elite&display=swap" rel="stylesheet"/>
 
+  <script src="https://unpkg.com/ethers@6.10.0/dist/ethers.umd.min.js"></script>
+  <script src="https://unpkg.com/@walletconnect/ethereum-provider/dist/index.umd.js"></script>
+
   <style>
     * { box-sizing: border-box; }
+
     body {
-      margin: 0; min-height: 100vh; color: white;
-      font-family: 'Special Elite', monospace; overflow-x: hidden; background: #000;
+      margin: 0;
+      min-height: 100vh;
+      font-family: 'Special Elite', monospace;
+      color: white;
+      background: url("bg.jpg") center / cover no-repeat fixed; /* TODO: đổi ảnh nền */
     }
-    body::before {
-      content:""; position:fixed; inset:0;
-      background:url("bg.jpg") no-repeat center center fixed;
-      background-size:cover; filter:blur(2px); transform:scale(1.05); z-index:-2;
+
+    .overlay {
+      min-height: 100vh;
+      background: rgba(0,0,0,.55);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      padding: 20px;
     }
-    body::after {
-      content:""; position:fixed; inset:0; background:rgba(0,0,0,.35); z-index:-1;
+
+    h1 { margin: 0; letter-spacing: 2px; }
+
+    .wallet {
+      padding: 10px 16px;
+      border: 2px dashed white;
+      border-radius: 10px;
+      cursor: pointer;
     }
-    .topbar{position:fixed;top:12px;right:12px;z-index:20;display:flex;gap:8px;align-items:center}
-    .topbar button{padding:6px 10px;border-radius:8px;border:1px solid #fff;background:rgba(0,0,0,.4);color:#fff;cursor:pointer;font-family:inherit;font-size:.75rem}
-    .addr{font-size:.7rem;opacity:.85;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
-    .poll{position:relative;min-height:100vh;display:flex;align-items:center;justify-content:center}
-    .check-container{max-width:460px;padding:0 16px;text-align:center;z-index:2}
-    .question{padding:14px 12px;border:2px dashed rgba(255,255,255,.6);border-radius:12px;background:rgba(0,0,0,.35)}
+    .poll {
+      width: 100%;
+      max-width: 420px;
+      background: rgba(0,0,0,.35);
+      border: 2px solid white;
+      border-radius: 16px;
+      padding: 16px;
+      display: grid;
+      gap: 12px;
+      text-align: center;
+    }
 
-    .option-box{position:fixed;top:50%;transform:translateY(-50%);width:260px;height:340px;background:rgba(0,0,0,.35);border:2px solid #fff;border-radius:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.3s}
-    .option-left{left:-235px}.option-right{right:-235px}
-    .option-left:hover{left:16px}.option-right:hover{right:16px}
-    .option-left.active{left:16px}.option-right.active{right:16px}
+    .question {
+      border: 2px dashed rgba(255,255,255,.6);
+      border-radius: 10px;
+      padding: 12px;
+      font-size: 1rem;
+    }
 
-    .arrow{position:absolute;font-size:2rem;opacity:.35}
-    .option-content{opacity:0;transition:.2s;text-align:center}
-    .option-box:hover .option-content,.option-box.active .option-content{opacity:1}
+    .options {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
 
-    .locked{opacity:.25;pointer-events:none}
+    .option {
+      border: 1px solid white;
+      border-radius: 10px;
+      padding: 14px 6px;
+      cursor: pointer;
+      background: rgba(255,255,255,.08);
+      transition: .15s ease;
+    }
 
-    .modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;z-index:10}
-    .modal-box{background:#000;border:2px solid #fff;border-radius:12px;padding:20px;width:280px;text-align:center}
+    .option:hover { background: rgba(255,255,255,.18); }
+
+    .locked { opacity: .4; pointer-events: none; }
+
+    .vote-power {
+      font-size: .8rem;
+      opacity: .8;
+    }
   </style>
 </head>
 
 <body>
-  <div class="topbar">
-    <button onclick="connectWallet()">Connect Wallet</button>
-    <div class="addr" id="walletAddress">Not connected</div>
-  </div>
+  <div class="overlay">
 
-  <section class="poll" data-poll-id="1">
-    <div class="option-box option-left" id="leftBox-1" onclick="openConfirm(1,'LEFT')">
-      <div class="arrow">◀</div>
-      <div class="option-content">
-        <div>LEFT OPTION</div>
-        <div id="leftPercent-1">0%</div>
+    <h1>UDI POLL</h1>
+
+    <div class="wallet" id="connectBtn">CONNECT WALLET</div>
+    <div id="walletAddress" style="font-size:.8rem;opacity:.7"></div>
+    <div class="vote-power" id="votePowerText">Vote Power: 0</div>
+
+    <div class="poll" id="poll-1">
+      <div class="question">YOUR QUESTION HERE</div>
+
+      <div class="options">
+        <div class="option" onclick="vote('A')">A</div>
+        <div class="option" onclick="vote('B')">B</div>
+        <div class="option" onclick="vote('C')">C</div>
+        <div class="option" onclick="vote('D')">D</div>
       </div>
     </div>
 
-    <div class="option-box option-right" id="rightBox-1" onclick="openConfirm(1,'RIGHT')">
-      <div class="arrow">▶</div>
-      <div class="option-content">
-        <div>RIGHT OPTION</div>
-        <div id="rightPercent-1">0%</div>
-      </div>
-    </div>
-
-    <div class="check-container">
-      <div class="question">YOUR POLL QUESTION HERE</div>
-    </div>
-  </section>
-
-  <div class="modal" id="confirmModal">
-    <div class="modal-box">
-      <div>Are you sure?</div>
-      <button onclick="confirmVote()">YES</button>
-      <button onclick="closeConfirm()">NO</button>
-    </div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/ethers@6.10.0/dist/ethers.umd.min.js"></script>
-  <script src="https://unpkg.com/@web3modal/ethers@3.5.7/dist/index.umd.js"></script>
+<script>
+/* ================= CONFIG ================= */
+const PROJECT_ID = "YOUR_WALLETCONNECT_PROJECT_ID"; // TODO
+const RPC_URL = "https://mainnet.infura.io/v3/YOUR_KEY"; // TODO
+const NFT_CONTRACT = "0xB7bDb6ef937CC52e543d9871b887B6527C2E5b38"; // TODO
+const METADATA_CSV_URL = "https://yourdomain.com/udi_metadata.csv"; // TODO
 
-  <script>
-    const { createWeb3Modal, defaultConfig } = window.Web3Modal;
-    const projectId = "ff79837521c510bbdc432d35a44f2414";
-    const CONTRACT_ADDRESS = "0xYOUR_CONTRACT_ADDRESS";
+/* ================= GLOBAL ================= */
+let provider, signer, userAddress;
+let votePower = 0;
+let voted = false;
 
-    const ABI = [
-      "function vote(uint256 pollId, bool isLeft)",
-      "function getResult(uint256 pollId) view returns (uint256 left, uint256 right)",
-      "function hasVoted(uint256 pollId, address user) view returns (bool)"
-    ];
+/* ================= WALLET CONNECT ================= */
+async function connectWallet() {
+  const wcProvider = await window.WalletConnectEthereumProvider.init({
+    projectId: PROJECT_ID,
+    chains: [1],
+    showQrModal: true,
+    rpcMap: { 1: RPC_URL }
+  });
 
-    const web3Modal = createWeb3Modal({
-      ethersConfig: defaultConfig({ metadata:{name:"$UDI",description:"UDI Poll",url:"",icons:[]} }),
-      chains:[{chainId:1,name:"Ethereum",currency:"ETH",explorerUrl:"https://etherscan.io",rpcUrl:"https://cloudflare-eth.com"}],
-      projectId
-    });
+  await wcProvider.enable();
+  provider = new ethers.BrowserProvider(wcProvider);
+  signer = await provider.getSigner();
+  userAddress = await signer.getAddress();
 
-    let provider, signer, userAddress, contract, selected={};
+  document.getElementById("walletAddress").innerText = userAddress;
+  calcVotePower();
+}
 
-    async function connectWallet(){
-      provider = await web3Modal.connect();
-      const p = new ethers.BrowserProvider(provider);
-      signer = await p.getSigner();
-      userAddress = await signer.getAddress();
-      contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
-      document.getElementById("walletAddress").innerText =
-        userAddress.slice(0,6)+"..."+userAddress.slice(-4);
-      refresh(1);
+document.getElementById("connectBtn").onclick = connectWallet;
+
+/* ================= NFT + TRAIT ================= */
+async function fetchCSV(url) {
+  const res = await fetch(url);
+  const text = await res.text();
+  return text.split("\n").map(r => r.split(","));
+}
+
+async function calcVotePower() {
+  const data = await fetchCSV(METADATA_CSV_URL);
+  let total = 0;
+
+  data.forEach(row => {
+    const owner = row[0];
+    const accessories = row[1]?.trim().toUpperCase();
+
+    if (owner?.toLowerCase() === userAddress.toLowerCase()) {
+      if (accessories === "UPO" || accessories === "DONO") total += 10;
+      else if (accessories === "INFEENO") total += 25;
+      else if (accessories === "KEY") total += 40;
+      else total += 1;
     }
+  });
 
-    function openConfirm(pollId, side){
-      if(!userAddress) return alert("Connect wallet first");
-      selected={pollId, side};
-      document.getElementById("confirmModal").style.display="flex";
-    }
-    function closeConfirm(){ document.getElementById("confirmModal").style.display="none"; }
+  votePower = total;
+  document.getElementById("votePowerText").innerText = "Vote Power: " + votePower;
+}
 
-    async function confirmVote(){
-      const tx = await contract.vote(selected.pollId, selected.side==="LEFT");
-      await tx.wait();
-      closeConfirm();
-      await refresh(selected.pollId);
-      alert("Voted successfully!");
-    }
+/* ================= VOTE ================= */
+function vote(choice) {
+  if (!userAddress) return alert("Connect wallet first");
+  if (voted) return alert("You already voted");
+  if (votePower === 0) return alert("You don't have UDI NFT");
 
-    async function refresh(pollId){
-      const [l,r] = await contract.getResult(pollId);
-      const total = Number(l)+Number(r) || 1;
-      document.getElementById("leftPercent-"+pollId).innerText = Math.round(Number(l)/total*100)+"%";
-      document.getElementById("rightPercent-"+pollId).innerText = Math.round(Number(r)/total*100)+"%";
+  voted = true;
+  document.querySelectorAll(".option").forEach(el => el.classList.add("locked"));
 
-      const voted = await contract.hasVoted(pollId, userAddress);
-      if(voted){
-        document.getElementById("leftBox-"+pollId).classList.add("locked");
-        document.getElementById("rightBox-"+pollId).classList.add("locked");
-      }
-    }
-  </script>
+  console.log("VOTE:", choice, "POWER:", votePower);
+
+  // TODO:
+  // fetch("https://your-backend.com/vote", {...})
+  // OR
+  // call smart contract vote(...)
+}
+</script>
 </body>
 </html>
