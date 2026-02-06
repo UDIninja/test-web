@@ -6,398 +6,142 @@
   <title>$UDI</title>
 
   <link rel="icon" href="UDifavicon.png" />
-  <link href="https://fonts.googleapis.com/css2?familyfamily=Special+Elite&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Special+Elite&display=swap" rel="stylesheet"/>
 
   <style>
     * { box-sizing: border-box; }
-
     body {
-      margin: 0;
-      min-height: 100vh;
-      color: white;
-      font-family: 'Special Elite', monospace;
-      overflow-x: hidden;
-      background: #000; /* fallback */
+      margin: 0; min-height: 100vh; color: white;
+      font-family: 'Special Elite', monospace; overflow-x: hidden; background: #000;
     }
-
-    /* ===== Background image + overlay ===== */
     body::before {
-      content: "";
-      position: fixed;
-      inset: 0;
-      background: url("bg.jpg") no-repeat center center fixed;
-      background-size: cover;
-      filter: blur(2px);
-      transform: scale(1.05);
-      z-index: -2;
+      content:""; position:fixed; inset:0;
+      background:url("bg.jpg") no-repeat center center fixed;
+      background-size:cover; filter:blur(2px); transform:scale(1.05); z-index:-2;
     }
-
     body::after {
-      content: "";
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.35);
-      z-index: -1;
+      content:""; position:fixed; inset:0; background:rgba(0,0,0,.35); z-index:-1;
     }
+    .topbar{position:fixed;top:12px;right:12px;z-index:20;display:flex;gap:8px;align-items:center}
+    .topbar button{padding:6px 10px;border-radius:8px;border:1px solid #fff;background:rgba(0,0,0,.4);color:#fff;cursor:pointer;font-family:inherit;font-size:.75rem}
+    .addr{font-size:.7rem;opacity:.85;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
-    .topbar {
-      position: fixed;
-      top: 12px;
-      right: 12px;
-      z-index: 20;
-      display: flex;
-      gap: 8px;
-      align-items: center;
-    }
+    .poll{position:relative;min-height:100vh;display:flex;align-items:center;justify-content:center}
+    .check-container{max-width:460px;padding:0 16px;text-align:center;z-index:2}
+    .question{padding:14px 12px;border:2px dashed rgba(255,255,255,.6);border-radius:12px;background:rgba(0,0,0,.35)}
 
-    .topbar button {
-      padding: 6px 10px;
-      border-radius: 8px;
-      border: 1px solid white;
-      background: rgba(0,0,0,.4);
-      color: white;
-      cursor: pointer;
-      font-family: inherit;
-      font-size: .75rem;
-      backdrop-filter: blur(4px);
-    }
+    .option-box{position:fixed;top:50%;transform:translateY(-50%);width:260px;height:340px;background:rgba(0,0,0,.35);border:2px solid #fff;border-radius:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.3s}
+    .option-left{left:-235px}.option-right{right:-235px}
+    .option-left:hover{left:16px}.option-right:hover{right:16px}
+    .option-left.active{left:16px}.option-right.active{right:16px}
 
-    .topbar .addr {
-      font-size: .7rem;
-      opacity: .85;
-      max-width: 120px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
+    .arrow{position:absolute;font-size:2rem;opacity:.35}
+    .option-content{opacity:0;transition:.2s;text-align:center}
+    .option-box:hover .option-content,.option-box.active .option-content{opacity:1}
 
-    /* ========== POLL WRAPPER ========== */
-    .poll {
-      position: relative;
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
+    .locked{opacity:.25;pointer-events:none}
 
-    .check-container {
-      width: 100%;
-      max-width: 460px;
-      padding: 0 16px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      text-align: center;
-      z-index: 2;
-      gap: 12px;
-    }
-
-    .question {
-      font-size: 1.1rem;
-      letter-spacing: 1px;
-      line-height: 1.4;
-      padding: 14px 12px;
-      border: 2px dashed rgba(255,255,255,0.6);
-      border-radius: 12px;
-      background: rgba(0,0,0,0.35);
-      backdrop-filter: blur(6px);
-    }
-
-    /* ========== OPTION BOX ========== */
-    .option-box {
-      position: fixed;
-      top: 50%;
-      transform: translateY(-50%);
-      width: 260px;
-      height: 340px;
-      background: rgba(0,0,0,.35);
-      backdrop-filter: blur(8px);
-      border: 2px solid white;
-      border-radius: 16px;
-      transition: left .35s ease, right .35s ease, box-shadow .25s ease, transform .2s ease;
-      cursor: pointer;
-      z-index: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .option-left { left: -235px; }
-    .option-right { right: -235px; }
-
-    .option-left:hover { left: 16px; box-shadow: 0 0 22px rgba(255,255,255,0.7); }
-    .option-right:hover { right: 16px; box-shadow: 0 0 22px rgba(255,255,255,0.7); }
-
-    .option-left.active { left: 16px; }
-    .option-right.active { right: 16px; }
-
-    .arrow {
-      position: absolute;
-      font-size: 2.2rem;
-      opacity: .35;
-      transition: .2s ease;
-      user-select: none;
-    }
-
-    .option-left .arrow { right: 10px; }
-    .option-right .arrow { left: 10px; }
-
-    .option-box:hover .arrow,
-    .option-box.active .arrow { opacity: 0; }
-
-    .option-content {
-      opacity: 0;
-      pointer-events: none;
-      transition: .2s ease;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 12px;
-      width: 100%;
-      height: 100%;
-      justify-content: center;
-      padding: 12px;
-      text-align: center;
-    }
-
-    .option-box:hover .option-content,
-    .option-box.active .option-content {
-      opacity: 1;
-      pointer-events: auto;
-    }
-
-    .option-content img {
-      width: 140px;
-      height: 140px;
-      border-radius: 12px;
-      border: 2px dashed rgba(255,255,255,.5);
-      object-fit: cover;
-      background: rgba(255,255,255,0.08);
-    }
-
-    .option-text { font-size: .9rem; letter-spacing: 1px; }
-    .percent { font-size: .8rem; opacity: .8; }
-
-    .locked { opacity: .25; pointer-events: none; }
-
-    @media (hover: none) {
-      .option-left:hover,
-      .option-right:hover { box-shadow: none; }
-    }
-
-    /* ========== CONFIRM MODAL ========== */
-    .modal {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,.6);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 10;
-    }
-
-    .modal-box {
-      background: rgba(0,0,0,.9);
-      border: 2px solid white;
-      border-radius: 12px;
-      padding: 20px;
-      text-align: center;
-      width: 280px;
-      backdrop-filter: blur(6px);
-    }
-
-    .modal-buttons {
-      display: flex;
-      gap: 8px;
-      margin-top: 16px;
-    }
-
-    .modal-buttons button {
-      width: 100%;
-      padding: 8px 0;
-      border-radius: 8px;
-      border: 1px solid white;
-      background: transparent;
-      color: white;
-      cursor: pointer;
-      font-family: inherit;
-    }
+    .modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;z-index:10}
+    .modal-box{background:#000;border:2px solid #fff;border-radius:12px;padding:20px;width:280px;text-align:center}
   </style>
 </head>
 
 <body>
-
-  <!-- TOP BAR -->
   <div class="topbar">
     <button onclick="connectWallet()">Connect Wallet</button>
     <div class="addr" id="walletAddress">Not connected</div>
   </div>
 
-  <!-- ========== POLL #1 ========== -->
   <section class="poll" data-poll-id="1">
-    <div class="option-box option-left" id="leftBox-1" onclick="openConfirm(1, 'LEFT')">
+    <div class="option-box option-left" id="leftBox-1" onclick="openConfirm(1,'LEFT')">
       <div class="arrow">◀</div>
       <div class="option-content">
-        <img src="" />
-        <div class="option-text">LEFT OPTION</div>
-        <div class="percent" id="leftPercent-1">0%</div>
+        <div>LEFT OPTION</div>
+        <div id="leftPercent-1">0%</div>
       </div>
     </div>
 
-    <div class="option-box option-right" id="rightBox-1" onclick="openConfirm(1, 'RIGHT')">
+    <div class="option-box option-right" id="rightBox-1" onclick="openConfirm(1,'RIGHT')">
       <div class="arrow">▶</div>
       <div class="option-content">
-        <img src="" />
-        <div class="option-text">RIGHT OPTION</div>
-        <div class="percent" id="rightPercent-1">0%</div>
+        <div>RIGHT OPTION</div>
+        <div id="rightPercent-1">0%</div>
       </div>
     </div>
 
     <div class="check-container">
-      <div class="question">
-        YOUR POLL QUESTION HERE
-      </div>
+      <div class="question">YOUR POLL QUESTION HERE</div>
     </div>
   </section>
 
-  <!-- CONFIRM MODAL -->
   <div class="modal" id="confirmModal">
     <div class="modal-box">
       <div>Are you sure?</div>
-      <div style="font-size:.8rem;opacity:.7;margin-top:6px">
-        This choice cannot be changed.
-      </div>
-      <div class="modal-buttons">
-        <button onclick="confirmVote()">YES</button>
-        <button onclick="closeConfirm()">NO</button>
-      </div>
+      <button onclick="confirmVote()">YES</button>
+      <button onclick="closeConfirm()">NO</button>
     </div>
   </div>
 
-  <!-- LIBS -->
   <script src="https://cdn.jsdelivr.net/npm/ethers@6.10.0/dist/ethers.umd.min.js"></script>
   <script src="https://unpkg.com/@web3modal/ethers@3.5.7/dist/index.umd.js"></script>
 
   <script>
     const { createWeb3Modal, defaultConfig } = window.Web3Modal;
+    const projectId = "YOUR_WALLETCONNECT_PROJECT_ID";
+    const CONTRACT_ADDRESS = "0xYOUR_CONTRACT_ADDRESS";
 
-    const projectId = "YOUR_WALLETCONNECT_PROJECT_ID"; // <-- thay bằng Project ID của bạn
-
-    const metadata = {
-      name: "$UDI",
-      description: "UDI Poll",
-      url: "https://your-site.xyz",
-      icons: ["https://your-site.xyz/UDifavicon.png"]
-    };
+    const ABI = [
+      "function vote(uint256 pollId, bool isLeft)",
+      "function getResult(uint256 pollId) view returns (uint256 left, uint256 right)",
+      "function hasVoted(uint256 pollId, address user) view returns (bool)"
+    ];
 
     const web3Modal = createWeb3Modal({
-      ethersConfig: defaultConfig({ metadata }),
-      chains: [{
-        chainId: 1,
-        name: "Ethereum",
-        currency: "ETH",
-        explorerUrl: "https://etherscan.io",
-        rpcUrl: "https://cloudflare-eth.com"
-      }],
+      ethersConfig: defaultConfig({ metadata:{name:"$UDI",description:"UDI Poll",url:"",icons:[]} }),
+      chains:[{chainId:1,name:"Ethereum",currency:"ETH",explorerUrl:"https://etherscan.io",rpcUrl:"https://cloudflare-eth.com"}],
       projectId
     });
 
-    let provider, signer, userAddress;
-    let selected = { pollId: null, side: null };
+    let provider, signer, userAddress, contract, selected={};
 
-    async function connectWallet() {
-      try {
-        provider = await web3Modal.connect();
-        const ethersProvider = new ethers.BrowserProvider(provider);
-        signer = await ethersProvider.getSigner();
-        userAddress = await signer.getAddress();
+    async function connectWallet(){
+      provider = await web3Modal.connect();
+      const p = new ethers.BrowserProvider(provider);
+      signer = await p.getSigner();
+      userAddress = await signer.getAddress();
+      contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
+      document.getElementById("walletAddress").innerText =
+        userAddress.slice(0,6)+"..."+userAddress.slice(-4);
+      refresh(1);
+    }
 
-        document.getElementById("walletAddress").innerText =
-          userAddress.slice(0,6) + "..." + userAddress.slice(-4);
-      } catch (e) {
-        console.log(e);
+    function openConfirm(pollId, side){
+      if(!userAddress) return alert("Connect wallet first");
+      selected={pollId, side};
+      document.getElementById("confirmModal").style.display="flex";
+    }
+    function closeConfirm(){ document.getElementById("confirmModal").style.display="none"; }
+
+    async function confirmVote(){
+      const tx = await contract.vote(selected.pollId, selected.side==="LEFT");
+      await tx.wait();
+      closeConfirm();
+      await refresh(selected.pollId);
+      alert("Voted successfully!");
+    }
+
+    async function refresh(pollId){
+      const [l,r] = await contract.getResult(pollId);
+      const total = Number(l)+Number(r) || 1;
+      document.getElementById("leftPercent-"+pollId).innerText = Math.round(Number(l)/total*100)+"%";
+      document.getElementById("rightPercent-"+pollId).innerText = Math.round(Number(r)/total*100)+"%";
+
+      const voted = await contract.hasVoted(pollId, userAddress);
+      if(voted){
+        document.getElementById("leftBox-"+pollId).classList.add("locked");
+        document.getElementById("rightBox-"+pollId).classList.add("locked");
       }
     }
-
-    function getState(pollId) {
-      return JSON.parse(localStorage.getItem("poll_" + pollId)) || { LEFT: 0, RIGHT: 0, userVote: null };
-    }
-
-    function setState(pollId, state) {
-      localStorage.setItem("poll_" + pollId, JSON.stringify(state));
-    }
-
-    function updatePercent(pollId) {
-      const state = getState(pollId);
-      const total = state.LEFT + state.RIGHT || 1;
-      document.getElementById("leftPercent-" + pollId).innerText =
-        Math.round((state.LEFT / total) * 100) + "%";
-      document.getElementById("rightPercent-" + pollId).innerText =
-        Math.round((state.RIGHT / total) * 100) + "%";
-    }
-
-    function lockOptions(pollId) {
-      const state = getState(pollId);
-      const leftBox = document.getElementById("leftBox-" + pollId);
-      const rightBox = document.getElementById("rightBox-" + pollId);
-
-      if (state.userVote === "LEFT") {
-        rightBox.classList.add("locked");
-        leftBox.classList.add("active");
-      } else if (state.userVote === "RIGHT") {
-        leftBox.classList.add("locked");
-        rightBox.classList.add("active");
-      }
-    }
-
-    function openConfirm(pollId, side) {
-      if (!userAddress) {
-        alert("Please connect wallet first");
-        return;
-      }
-      const state = getState(pollId);
-      if (state.userVote) return alert("You already voted on this poll.");
-      selected = { pollId, side };
-      document.getElementById("confirmModal").style.display = "flex";
-    }
-
-    function closeConfirm() {
-      selected = { pollId: null, side: null };
-      document.getElementById("confirmModal").style.display = "none";
-    }
-
-    function confirmVote() {
-      const { pollId, side } = selected;
-      if (!pollId || !side) return;
-
-      const state = getState(pollId);
-      state[side] += 1;
-      state.userVote = side;
-      setState(pollId, state);
-
-      document.getElementById("confirmModal").style.display = "none";
-      lockOptions(pollId);
-      updatePercent(pollId);
-    }
-
-    document.querySelectorAll(".poll").forEach(poll => {
-      const pollId = poll.dataset.pollId;
-      updatePercent(pollId);
-      lockOptions(pollId);
-    });
-
-    // MOBILE SWIPE
-    let startX = 0;
-    document.addEventListener("touchstart", e => startX = e.touches[0].clientX);
-    document.addEventListener("touchend", e => {
-      const diff = e.changedTouches[0].clientX - startX;
-      if (Math.abs(diff) > 60) {
-        const poll = document.querySelector(".poll");
-        const pollId = poll.dataset.pollId;
-        if (diff > 0) document.getElementById("leftBox-" + pollId).classList.add("active");
-        else document.getElementById("rightBox-" + pollId).classList.add("active");
-      }
-    });
   </script>
 </body>
 </html>
